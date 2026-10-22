@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Carga Masiva | De Rabona</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #F1F5F9; color: #1E293B; text-align: center; padding: 50px; }
+        .container { max-width: 600px; margin: 0 auto; background: #FFF; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #0F172A; font-family: 'Oswald', sans-serif; font-size: 36px; margin-bottom: 10px; }
+        p { color: #64748B; margin-bottom: 30px; font-size: 15px; }
+        button { background: #2563EB; color: white; font-size: 18px; font-weight: bold; padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.2s; }
+        button:disabled { background: #94A3B8; cursor: not-allowed; }
+        button:hover:not(:disabled) { background: #1D4ED8; }
+        #status { margin-top: 25px; font-weight: bold; font-size: 16px; color: #0F172A; line-height: 1.5; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Subida Automática</h1>
+        <p>Este script borrará cualquier producto en la tienda nueva de De Rabona y subirá la lista completa.</p>
+        
+        <button id="btnSubir" onclick="subirTodo()">Borrar todo y Subir Catálogo</button>
+        <div id="status"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        // --- CONFIGURACIÓN NUEVA DE FIREBASE (DE RABONA) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyChxdFfIs8xw-_79wFE6UFLttn2c2oo1bs",
+            authDomain: "derabona.firebaseapp.com",
+            projectId: "derabona",
+            storageBucket: "derabona.firebasestorage.app",
+            messagingSenderId: "1074994830029",
+            appId: "1:1074994830029:web:9b96fa194eb368fd89a784"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- LISTA DE PRODUCTOS (TUS 170 PRODUCTOS INTACTOS) ---
+        const catalogo = [
+            // BOCA JUNIORS
+            { title: "Boca Juniors Titular 1998 (Parmalat / Megatone)", team: "Boca Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:19, L:14, XL:13, XXL:20} },
+            { title: "Boca Juniors Titular Amarilla 1999 (Parmalat / Megatone)", team: "Boca Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:4, L:0, XL:0, XXL:0} },
+            { title: "Boca Juniors Suplente Blanca 2000 (Banco Francés / Red de la Salud)", team: "Boca Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:32, L:32, XL:32, XXL:32} },
+            { title: "Boca Juniors Titular 2001 (Escudo Grande)", team: "Boca Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:3, L:0, XL:0, XXL:0} },
+            { title: "Boca Juniors Titular 2004 (Topper)", team: "Boca Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:27, L:23, XL:27, XXL:25} },
+            { title: "Boca Juniors Suplente Blanca Megatone 2007", team: "Boca Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:13, L:0, XL:0, XXL:0} },
+            { title: "Boca Juniors Suplente Blanca 2007 (Megatone)", team: "Boca Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:13, L:0, XL:0, XXL:0} },
+
+            // RIVER PLATE
+            { title: "River Negra Banda Roja/Blanca 1996 (Quilmes)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:24, L:23, XL:15, XXL:23} },
+            { title: "River Negra Tricolor 1997 Sanyo/Budweiser", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:51, L:50, XL:53, XXL:51} },
+            { title: "River Blanca Rombos Rojos 1993 (Adidas)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:54, L:46, XL:49, XXL:48} },
+            { title: "River Blanca Titular Sanyo 1995/96", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:41, L:46, XL:41, XXL:48} },
+            { title: "River Blanca Escuditos 1994 (Sanyo)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:19, XL:7, XXL:23} },
+            { title: "River Titular 1986 (FATE)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:20, XL:24, XXL:29} },
+            { title: "River Titular Tricolor 1996/97 (Quilmes)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:12, L:10, XL:16, XXL:17} },
+            { title: "River Titular 2000 (Budweiser)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:17, L:17, XL:15, XXL:21} },
+            { title: "River Titular Banda Roja Clásica 1986 (Fate)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:51, L:47, XL:40, XXL:46} },
+            { title: "River Titular 1997 (Quilmes N°10)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:30, L:27, XL:29, XXL:33} },
+            { title: "River Blanca/Roja Retro 1990 (Manga Corta/Larga)", team: "River Plate", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:3, L:0, XL:0, XXL:0} },
+
+            // INDEPENDIENTE
+            { title: "Independiente Roja Mita 1994 (Bochini 10)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:32, XL:31, XXL:30} },
+            { title: "Independiente Blanca Mita 1992", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:27, L:39, XL:49, XXL:32} },
+            { title: "Independiente Roja AdeS Clásica 2002", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:27, L:40, XL:42, XXL:29} },
+            { title: "Independiente Roja AdeS Topper 2003", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:33, L:22, XL:19, XXL:18} },
+            { title: "Independiente Roja Hombros Blancos/Rojos 2004 (AdeS)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:33, L:37, XL:40, XXL:32} },
+            { title: "Independiente Blanca Mangas Azules/Negras 2002 (AdeS)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:21, L:30, XL:29, XXL:26} },
+            { title: "Independiente Blanca Marca Mita/AdeS 2001", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:19, XL:15, XXL:29} },
+            { title: "Independiente Blanca Fantasía 2000 (Agotada)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:0, L:0, XL:0, XXL:0} },
+            { title: "Independiente Roja Cuello Blanco 2003 (AdeS)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:36, L:39, XL:43, XXL:49} },
+            { title: "Independiente Blanca Puma 2013 (Red de la Salud)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:0, L:0, XL:0, XXL:0} },
+            { title: "Independiente Roja Estampados/Diablos 2010", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:5, L:0, XL:0, XXL:0} },
+            { title: "Independiente Roja Taranto 1997", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:58, L:54, XL:57, XXL:54} },
+            { title: "Independiente Roja Fuerza Bruta / Termidor 2008", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:40, L:33, XL:39, XXL:46} },
+            { title: "Independiente Roja Termidor 2008", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:41, L:42, XL:41, XXL:41} },
+            { title: "Independiente Blanca Termidor 2008", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:76, L:72, XL:71, XXL:85} },
+            { title: "Independiente Roja Motomel 2009", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:46, L:44, XL:51, XXL:47} },
+            { title: "Independiente Roja Mita 1990 (Años 90)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:20, L:17, XL:13, XXL:14} },
+            { title: "Independiente Blanca Mita 1991 (Años 90)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:23, XL:22, XXL:25} },
+            { title: "Independiente Azul Motomel 2009", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:6, L:3, XL:8, XXL:0} },
+            { title: "Independiente Blanca Motomel 2009", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:15, L:15, XL:19, XXL:14} },
+            { title: "Independiente Roja Puma Clásica 2000", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:10, L:0, XL:0, XXL:0} },
+            { title: "Independiente Roja Rayas Finas 1999", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:2, L:0, XL:0, XXL:0} },
+            { title: "Independiente Roja Puma 2000 (2000s)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:20, L:21, XL:20, XXL:20} },
+            { title: "Independiente Roja AdeS Manga Larga 2003", team: "Independiente", type: "Remera Manga Larga", isRetro: true, price: 45000, stock: {S:0, M:30, L:30, XL:27, XXL:29} },
+            { title: "Independiente Blanca/Roja 2005 (Sponsor Trasero)", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:10, L:5, XL:4, XXL:2} },
+            { title: "Independiente Roja N°26 Ibáñez/Forlán 2010", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:8, L:5, XL:2, XXL:1} },
+            { title: "Independiente Roja Clásica Retro 1989", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:57, L:52, XL:49, XXL:55} },
+            { title: "Independiente Gris / Gris Oscuro 2011", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:0, L:2, XL:6, XXL:16} },
+            { title: "Independiente Blanca Retro 1990", team: "Independiente", type: "Camiseta", isRetro: true, price: 45000, stock: {S:12, M:12, L:4, XL:0, XXL:9} },
+
+            // RACING CLUB
+            { title: "Racing Blanca AdeS 2002", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:7, L:8, XL:8, XXL:0} },
+            { title: "Racing Bastones Celestes y Blancos 1986 (Del Monte)", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:8, L:4, XL:3, XXL:0} },
+            { title: "Racing Blanca Nashua 1999", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:34, L:28, XL:30, XXL:24} },
+            { title: "Racing Azul Oscuro / Negra Nashua 1999", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:35, L:38, XL:33, XXL:34} },
+            { title: "Racing Azul Francia Fiden 1994", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:0, L:0, XL:0, XXL:0} },
+            { title: "Racing Negra / Azul Petrobras 2001", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:44, L:15, XL:15, XXL:14} },
+            { title: "Racing Azul/Celeste Lluvia / Camuflada 2005", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:34, L:25, XL:26, XXL:20} },
+            { title: "Racing Azul Rosamonte 2007", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:24, XL:23, XXL:23} },
+            { title: "Racing Bastones Multicanal 2002", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:10, L:0, XL:0, XXL:0} },
+            { title: "Racing Bastones Multicanal Clásica 2002", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:31, L:26, XL:31, XXL:30} },
+            { title: "Racing Azul Multicanal 2002", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:4, L:1, XL:0, XXL:1} },
+            { title: "Racing Bastones Sky 2008", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:7, L:5, XL:0, XXL:0} },
+            { title: "Racing Negra Sky 2008", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:30, L:29, XL:31, XXL:29} },
+            { title: "Racing Azul Oscuro Multicanal 2003", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:46, L:35, XL:20, XXL:23} },
+            { title: "Racing Bastones Finos Multicanal 2004", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:1, L:0, XL:0, XXL:3} },
+            { title: "Racing Azul Marino Multicanal 2002", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:57, L:50, XL:47, XXL:50} },
+            { title: "Racing Celeste/Blanca Topper 2009 (Sky)", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:9, L:0, XL:0, XXL:2} },
+            { title: "Racing Negra Topper/Lotto 2010", team: "Racing Club", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:33, L:17, XL:10, XXL:7} },
+
+            // SAN LORENZO
+            { title: "San Lorenzo Azul y Roja 2003 (CableVisión)", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:9, L:8, XL:9, XXL:9} },
+            { title: "San Lorenzo Azul Cuadros 2001 (CableVisión)", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:8, L:5, XL:9, XXL:11} },
+            { title: "San Lorenzo Blanca Franja Azul/Roja 2002 (CableVisión)", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:21, L:23, XL:22, XXL:17} },
+            { title: "San Lorenzo Azul/Roja Astori 2008", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:11, M:69, L:57, XL:58, XXL:63} },
+            { title: "San Lorenzo Azul CableVisión 2004", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:62, L:59, XL:59, XXL:57} },
+            { title: "San Lorenzo Bastones Noblex 2005", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:37, L:37, XL:48, XXL:49} },
+            { title: "San Lorenzo Blanca Bastones Rojos/Azules 2010 (Signo)", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:33, L:29, XL:32, XXL:29} },
+            { title: "San Lorenzo Azul/Roja Zanella 1997", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:18, M:16, L:13, XL:11, XXL:14} },
+            { title: "San Lorenzo Blanca Zanella 1997", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:16, M:16, L:15, XL:14, XXL:14} },
+            { title: "San Lorenzo Blanca Astori 2008", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:11, M:51, L:38, XL:39, XXL:34} },
+            { title: "San Lorenzo Blanca CableVisión 2002", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:43, L:40, XL:41, XXL:47} },
+            { title: "San Lorenzo Blanca Cuello Azul Astori 2007", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:11, M:11, L:6, XL:1, XXL:5} },
+            { title: "San Lorenzo Blanca/Azul CableVisión 2000", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:19, L:8, XL:16, XXL:15} },
+            { title: "San Lorenzo Bastones Anchos Astori 2009", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:39, L:42, XL:40, XXL:41} },
+            { title: "San Lorenzo Bastones Clásicos 1994", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:24, L:24, XL:29, XXL:33} },
+            { title: "San Lorenzo Bastones Finos CableVisión 2001", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:51, L:44, XL:53, XXL:49} },
+            { title: "San Lorenzo Negra/Verde/Amarilla Noblex 2006", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:41, L:44, XL:45, XXL:44} },
+            { title: "San Lorenzo Negra Bastones Rojos Wal-Mart 2001", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:64, L:31, XL:39, XXL:41} },
+            { title: "San Lorenzo Bastones Noblex 2005 (Versión 2)", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:57, L:41, XL:52, XXL:59} },
+            { title: "San Lorenzo Azul/Roja Cuello Azul 1998", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:1, L:0, XL:0, XXL:0} },
+            { title: "San Lorenzo Blanca Mangas Azules/Rojas 2003", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:36, L:50, XL:44, XXL:42} },
+            { title: "San Lorenzo Blanca Signo/Sponsor 2009", team: "San Lorenzo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:22, XL:20, XXL:24} },
+
+            // GIMNASIA Y ESGRIMA LP
+            { title: "GELP Roja y Blanca 1998 (INCA)", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:27, L:28, XL:34, XXL:31} },
+            { title: "GELP Bastones Rojos y Blancos 1996 (INCA)", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:9, L:9, XL:10, XXL:10} },
+            { title: "GELP Blanca / Roja Penalty 1992", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:18, L:17, XL:17, XXL:20} },
+            { title: "GELP Blanca Franja Azul 1998 (Cerveza)", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:6, L:14, XL:16, XXL:5} },
+            { title: "GELP Blanca Franja Azul 2000 (Banco Municipal)", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:57, L:44, XL:70, XXL:91} },
+            { title: "GELP Azul Franja Blanca 2000 (Banco Municipal)", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:23, L:0, XL:2, XXL:0} },
+            { title: "GELP Blanca Cuello Banco Municipal 2001", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:25, XL:38, XXL:40} },
+            { title: "GELP Azul Cuello Banco Municipal 2001", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:18, L:24, XL:30, XXL:35} },
+            { title: "GELP Blanca Franja Azul Hummel 2005", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:31, L:32, XL:32, XXL:30} },
+            { title: "GELP Azul Franja Blanca Hummel 2005", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:30, L:30, XL:30, XXL:30} },
+            { title: "GELP Blanca Banco Municipal 2004 (Versión 2)", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:68, L:78, XL:77, XXL:76} },
+            { title: "GELP Azul Banco Municipal 2004 (Versión 2)", team: "Gimnasia y Esgrima LP", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:58, L:62, XL:62, XXL:61} },
+
+            // ESTUDIANTES DE LA PLATA
+            { title: "Estudiantes Blanca Banda Roja 1996 (Prensa/Inca)", team: "Estudiantes de La Plata", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:12, L:13, XL:13, XXL:13} },
+            { title: "Estudiantes Blanca Banda Roja 1995 (Inca)", team: "Estudiantes de La Plata", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:10, L:11, XL:11, XXL:10} },
+            { title: "Estudiantes Roja Banda Blanca N°10 1998", team: "Estudiantes de La Plata", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:16, L:13, XL:13, XXL:17} },
+            { title: "Estudiantes Roja Bastones Blancos Horizontales 1994", team: "Estudiantes de La Plata", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:24, L:27, XL:23, XXL:30} },
+            { title: "Estudiantes Bastones Rojos y Blancos Clásica 1990", team: "Estudiantes de La Plata", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:2, L:0, XL:0, XXL:5} },
+            { title: "Estudiantes Roja Sanyo/Topper 1996", team: "Estudiantes de La Plata", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:14, L:12, XL:14, XXL:19} },
+            { title: "Estudiantes Blanca Topper 1993 (Pinturas)", team: "Estudiantes de La Plata", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:15, L:20, XL:22, XXL:20} },
+            { title: "Estudiantes Roja Esso 1992 (Topper)", team: "Estudiantes de La Plata", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:1, L:0, XL:0, XXL:6} },
+
+            // HURACÁN
+            { title: "Huracán Roja Clásica 1995 (Ríos)", team: "Huracán", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:16, L:15, XL:15, XXL:14} },
+            { title: "Huracán Roja Sani 1999", team: "Huracán", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:11, L:18, XL:15, XXL:22} },
+            { title: "Huracán Blanca Sani 1999", team: "Huracán", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:6, L:6, XL:7, XXL:4} },
+            { title: "Huracán Blanca Banco Patricios 1997", team: "Huracán", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:9, L:13, XL:27, XXL:10} },
+            { title: "Huracán Roja Bastones Blancos 1992", team: "Huracán", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:0, L:0, XL:0, XXL:2} },
+            { title: "Huracán Negra/Gris 2010", team: "Huracán", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:1, L:0, XL:0, XXL:0} },
+
+            // VÉLEZ
+            { title: "Vélez Blanca V Azul Quilmes 1996", team: "Vélez Sarsfield", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:34, L:29, XL:31, XXL:37} },
+            { title: "Vélez Azul V Blanca Quilmes 1996", team: "Vélez Sarsfield", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:34, L:32, XL:29, XXL:26} },
+            { title: "Vélez Blanca Tricolor V Verde/Roja Quilmes 1993", team: "Vélez Sarsfield", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:11, L:6, XL:0, XXL:11} },
+            { title: "Vélez Azul Marino V Blanca 1990", team: "Vélez Sarsfield", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:7, L:9, XL:11, XXL:12} },
+
+            // ARGENTINOS JUNIORS
+            { title: "Argentinos Juniors Roja V Blanca 1985", team: "Argentinos Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:16, L:17, XL:14, XXL:20} },
+            { title: "Argentinos Juniors Roja Escudo 1998", team: "Argentinos Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:15, L:14, XL:15, XXL:16} },
+            { title: "Argentinos Juniors Blanca Crown Mustang 1997", team: "Argentinos Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:21, L:21, XL:21, XXL:22} },
+            { title: "Argentinos Juniors Roja Banco Macro 2008", team: "Argentinos Juniors", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:15, L:11, XL:8, XXL:8} },
+
+            // NEWELL'S Y ROSARIO
+            { title: "Newell's Old Boys / Colón Roja y Negra 1995", team: "Newell's Old Boys", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:64, L:54, XL:56, XXL:46} },
+            { title: "Newell's Old Boys Roja y Negra Yamaha 1994", team: "Newell's Old Boys", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:29, L:33, XL:35, XXL:27} },
+            { title: "Newell's Old Boys Mitad Negra/Mitad Roja 1993", team: "Newell's Old Boys", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:38, L:25, XL:25, XXL:36} },
+            { title: "Newell's Old Boys Bastones Rojos y Negros 1998", team: "Newell's Old Boys", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:9, L:10, XL:8, XXL:15} },
+            { title: "Newell's Old Boys Blanca Yamaha 1994", team: "Newell's Old Boys", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:26, L:26, XL:26, XXL:26} },
+            { title: "Newell's Old Boys Blanca Hombros Rojos/Negros 1997", team: "Newell's Old Boys", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:35, L:33, XL:36, XXL:35} },
+            { title: "Rosario Central Azul y Amarilla 1997 (General Paz)", team: "Rosario Central", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:19, L:14, XL:13, XXL:20} },
+            { title: "Rosario Central Azul y Amarilla N°4 1995", team: "Rosario Central", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:4, L:0, XL:0, XXL:0} },
+
+            // BELGRANO, TALLERES E INSTITUTO
+            { title: "Belgrano de Córdoba Celeste 1999 (Terza/Bancor)", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:37, L:46, XL:45, XXL:43} },
+            { title: "Belgrano Celeste Blanca Bancor 1998", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:32, L:32, XL:32, XXL:32} },
+            { title: "Belgrano Celeste Clásica 1992", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:16, L:14, XL:12, XXL:15} },
+            { title: "Belgrano Celeste Yastá 1997", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:6, L:0, XL:0, XXL:0} },
+            { title: "Belgrano Azul con Escudo Grande 2000", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:3, L:0, XL:0, XXL:0} },
+            { title: "Belgrano Celeste con Imagen/Rostro 2005", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:58, L:52, XL:52, XXL:45} },
+            { title: "Belgrano Negra con Imagen/Rostro 2005", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:54, L:46, XL:55, XXL:54} },
+            { title: "Belgrano Celeste Topper 2008", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:27, L:23, XL:27, XXL:25} },
+            { title: "Belgrano Celeste/Negra Topper 2008", team: "Belgrano", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:21, XL:21, XXL:20} },
+            { title: "Talleres de Córdoba Bastones Azules y Blancos 1999", team: "Talleres", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:15, L:16, XL:16, XXL:15} },
+            { title: "Talleres Bastones Azules y Blancos 1997 (Anchos)", team: "Talleres", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:59, L:60, XL:56, XXL:59} },
+            { title: "Instituto de Córdoba Bastones Rojos y Blancos 1998", team: "Instituto", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:29, L:24, XL:21, XXL:26} },
+
+            // VARIOS NACIONALES Y ENTRENAMIENTO
+            { title: "Unión de Santa Fe / Estudiantes Blanca y Roja 1998", team: "Unión", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:15, L:19, XL:14, XXL:11} },
+            { title: "Quilmes AC Azul Marino 1997", team: "Quilmes", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:1, L:4, XL:10, XXL:3} },
+            { title: "Lanús / Defensores Granate y Blanca 1996", team: "Lanús", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:6, L:0, XL:0, XXL:5} },
+            { title: "Ferro Carril Oeste Verde con Azul 1995", team: "Ferro", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:18, L:9, XL:13, XXL:15} },
+            { title: "Nueva Chicago / San Martín SJ Bastones Verdes y Negros 1998", team: "Nueva Chicago", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:54, L:51, XL:55, XXL:54} },
+            { title: "Chacarita / Tigre Bastones Tricolor / Blanca 1999", team: "Chacarita", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:4, L:0, XL:0, XXL:0} },
+            { title: "Chacarita Tricolor 1999 (Rojo, Blanco, Negro)", team: "Chacarita", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:4, L:0, XL:0, XXL:0} },
+            { title: "Chacarita Tricolor Clásica 1988", team: "Chacarita", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:4, L:0, XL:0, XXL:0} },
+            { title: "Rojo Entrenamiento/Entrenar Básico 2000", team: "Otros", type: "Remera Manga Larga", isRetro: false, price: 45000, stock: {S:2, M:7, L:0, XL:0, XXL:0} },
+            { title: "Camiseta Negra/Dorada Especial 2010", team: "Otros", type: "Camiseta", isRetro: false, price: 45000, stock: {S:27, M:0, L:0, XL:0, XXL:0} },
+            { title: "Camiseta Negra Lisa con Vivo Blanco 2010", team: "Otros", type: "Camiseta", isRetro: false, price: 45000, stock: {S:0, M:0, L:0, XL:0, XXL:1} },
+            { title: "Camiseta Blanca Entrenamiento 2000", team: "Otros", type: "Camiseta", isRetro: false, price: 45000, stock: {S:0, M:0, L:0, XL:0, XXL:5} },
+            { title: "Camiseta Rosa Alternativa 2015", team: "Otros", type: "Camiseta", isRetro: false, price: 45000, stock: {S:0, M:0, L:0, XL:15, XXL:2} },
+
+            // INTERNACIONALES Y SELECCIONES
+            { title: "Selección URSS / URSS Roja CCCP 1988", team: "Selecciones", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:19, L:14, XL:8, XXL:10} },
+            { title: "Selección Roja Retro 1994", team: "Selecciones", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:2, L:0, XL:0, XXL:0} },
+            { title: "Colo-Colo Negra Cristal 1996", team: "Colo-Colo", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:2, L:1, XL:0, XXL:0} },
+            { title: "FC Barcelona Azulgrana Unicef 2006", team: "Barcelona", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:18, L:17, XL:17, XXL:18} },
+            { title: "Fiorentina / Parma Violeta Parmalat 1998", team: "Fiorentina", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:14, L:15, XL:17, XXL:17} },
+            { title: "Fiorentina Violeta 7Up 1992", team: "Fiorentina", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:9, L:0, XL:0, XXL:11} },
+            { title: "Fiorentina Blanca 7Up 1992", team: "Fiorentina", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:27, L:35, XL:31, XXL:27} },
+            { title: "Real Madrid Blanca 2000", team: "Real Madrid", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:11, L:0, XL:0, XXL:0} },
+            { title: "SSC Napoli Azul Buitoni 1989", team: "Napoli", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:14, L:0, XL:0, XXL:0} },
+            { title: "SSC Napoli Blanca Buitoni 1989", team: "Napoli", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:6, L:7, XL:8, XXL:7} },
+            { title: "SSC Napoli Roja Mars 1989", team: "Napoli", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:25, L:24, XL:26, XXL:27} },
+            { title: "Lazio Celeste Cirio 1992", team: "Lazio", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:39, L:34, XL:32, XXL:31} },
+            { title: "Lazio Blanca Cirio 1992", team: "Lazio", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:10, L:12, XL:11, XXL:11} },
+            { title: "Lazio Amarilla Cirio 1992", team: "Lazio", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:36, L:36, XL:34, XXL:36} },
+            { title: "Manchester United Roja AIG 2006", team: "Manchester United", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:19, L:21, XL:26, XXL:26} },
+            { title: "AC Milan Negra y Roja bwin 2006", team: "AC Milan", type: "Camiseta", isRetro: true, price: 45000, stock: {S:0, M:33, L:31, XL:33, XXL:35} },
+
+            // ALGODÓN
+            { title: "Camiseta de Algodón Blanca Escudo 2020", team: "Otros", type: "Remera Algodón", isRetro: false, price: 45000, stock: {S:0, M:7, L:1, XL:0, XXL:4} },
+            { title: "Camiseta de Algodón Verde 2020 (El Chijito Villa Lugano)", team: "Otros", type: "Remera Algodón", isRetro: false, price: 45000, stock: {S:0, M:9, L:4, XL:12, XXL:0} }
+        ];
+
+        async function subirTodo() {
+            const btn = document.getElementById("btnSubir");
+            const status = document.getElementById("status");
+            btn.disabled = true;
+            
+            status.innerText = "Borrando catálogo anterior en la nueva tienda...";
+            status.style.color = "#EF4444";
+            const querySnapshot = await db.collection("products").get();
+            const batch = db.batch();
+            querySnapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+
+            status.innerText = "Catálogo borrado. Iniciando subida...";
+            status.style.color = "#F59E0B";
+            
+            let completados = 0;
+            for (let item of catalogo) {
+                const productoFinal = {
+                    title: item.title,
+                    team: item.team,
+                    productType: item.type,
+                    isRetro: item.isRetro,
+                    price: item.price,
+                    images: ["logo.jpg"],
+                    description: "",
+                    stock: item.stock
+                };
+
+                try {
+                    await db.collection("products").add(productoFinal);
+                    completados++;
+                    status.innerText = `Subiendo: ${completados} de ${catalogo.length}...`;
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                } catch (error) {
+                    console.error("Error al subir: ", item.title, error);
+                }
+            }
+
+            status.innerText = "¡Catálogo subido completo! Abre el index o admin para ver los cambios.";
+            status.style.color = "#10B981";
+            btn.innerText = "Completado";
+        }
+    </script>
+</body>
+</html>
