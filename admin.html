@@ -9,28 +9,28 @@
     <link rel="stylesheet" href="style.css">
     
     <style>
-        .preview-box { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; background-color: #F8FAFC; padding: 15px; border-radius: var(--radius-md); border: 2px dashed var(--border-color); min-height: 60px; width: 100%; box-sizing: border-box; }
+        .preview-box { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; background-color: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: var(--radius-md); border: 2px dashed var(--border-color); min-height: 60px; width: 100%; box-sizing: border-box; }
         .preview-box img { width: 70px; height: 70px; object-fit: cover; border-radius: var(--radius-sm); border: 2px solid var(--brand-blue); box-shadow: var(--shadow-sm); }
         .preview-box .txt-existing { font-size: 12px; color: var(--brand-blue); width: 100%; margin-bottom: 5px; font-weight: 700; }
 
-        .checkbox-group { display: flex; align-items: center; gap: 12px; background-color: #F8FAFC; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); cursor: pointer; margin-bottom: 0; width: 100%; box-sizing: border-box; transition: 0.2s; }
+        .checkbox-group { display: flex; align-items: center; gap: 12px; background-color: rgba(255, 255, 255, 0.03); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); cursor: pointer; margin-bottom: 0; width: 100%; box-sizing: border-box; transition: 0.2s; }
         .checkbox-group:hover { border-color: var(--brand-gold); }
         .checkbox-group input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--brand-gold); cursor: pointer; margin: 0; }
 
-        .inline-stock-input { width: 45px; background: #FFFFFF; border: 1px solid var(--border-color); color: var(--brand-dark); text-align: center; border-radius: 6px; padding: 6px; font-size: 13px; font-weight: 600; transition: 0.2s;}
-        .inline-stock-input:focus { border-color: var(--brand-blue); outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        .inline-stock-input { width: 45px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: #FFFFFF; text-align: center; border-radius: 6px; padding: 6px; font-size: 13px; font-weight: 600; transition: 0.2s;}
+        .inline-stock-input:focus { border-color: var(--brand-blue); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); background: rgba(255, 255, 255, 0.1); }
 
         /* ACORDEÓN TABLA */
-        .accordion-header-row { background-color: #F8FAFC; cursor: pointer; transition: background 0.2s; }
-        .accordion-header-row:hover { background-color: #F1F5F9; }
+        .accordion-header-row { background-color: rgba(255, 255, 255, 0.03); cursor: pointer; transition: background 0.2s; }
+        .accordion-header-row:hover { background-color: rgba(255, 255, 255, 0.06); }
         .accordion-header-cell { padding: 15px !important; border-bottom: 2px solid var(--border-color) !important; }
         .accordion-icon { transition: transform 0.3s; display: inline-block; width: 20px; color: var(--brand-blue); }
-        .product-row { background-color: #FFFFFF !important; display: none; }
-        .product-row td { border-bottom: 1px solid var(--border-color) !important; }
+        .product-row { background-color: var(--bg-card) !important; display: none; }
+        .product-row td { border-bottom: 1px solid var(--border-color) !important; color: #FFFFFF; }
 
         /* TOASTS & CONFIRM */
         .custom-toast-container { position: fixed; top: 24px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
-        .custom-toast { background-color: #FFFFFF; color: var(--text-main); padding: 16px 24px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); border-left: 4px solid var(--brand-blue); display: flex; align-items: center; gap: 12px; animation: slideDown 0.3s ease-out forwards; pointer-events: auto; max-width: 90vw; width: max-content; }
+        .custom-toast { background-color: var(--bg-card); color: var(--text-main); padding: 16px 24px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-lg); border: 1px solid var(--border-color); border-left: 4px solid var(--brand-blue); display: flex; align-items: center; gap: 12px; animation: slideDown 0.3s ease-out forwards; pointer-events: auto; max-width: 90vw; width: max-content; }
         .custom-toast.error { border-left-color: var(--brand-red); }
         .custom-toast.success { border-left-color: var(--brand-green); }
         .custom-toast.warning { border-left-color: var(--brand-gold); }
@@ -42,17 +42,20 @@
         @keyframes slideDown { from { top: -60px; opacity: 0; } to { top: 24px; opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
-        .custom-confirm-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000000; display: none; justify-content: center; align-items: center; }
+        .custom-confirm-overlay { position: fixed; inset: 0; background: rgba(9, 13, 22, 0.8); backdrop-filter: blur(6px); z-index: 1000000; display: none; justify-content: center; align-items: center; }
         .custom-confirm-overlay.active { display: flex; }
-        .custom-confirm-box { background: #FFFFFF; padding: 30px; border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); text-align: center; max-width: 400px; width: 90%; }
-        .custom-confirm-box h3 { font-size: 24px; margin-bottom: 15px; color: var(--brand-dark); font-family: 'Oswald', sans-serif; }
+        .custom-confirm-box { background: var(--bg-card); padding: 30px; border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); text-align: center; max-width: 400px; width: 90%; border: 1px solid var(--border-color); }
+        .custom-confirm-box h3 { font-size: 24px; margin-bottom: 15px; color: #FFFFFF; font-family: 'Oswald', sans-serif; }
         .custom-confirm-box p { font-size: 15px; color: var(--text-muted); margin-bottom: 25px; }
         .custom-confirm-actions { display: flex; gap: 12px; justify-content: center; }
         .custom-confirm-actions button { padding: 12px 20px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; border: none; flex: 1; font-size: 14px; transition: 0.2s; }
-        .btn-cancel { background: #F1F5F9; color: var(--text-main); }
-        .btn-cancel:hover { background: #E2E8F0; }
+        .btn-cancel { background: rgba(255, 255, 255, 0.05); color: #FFFFFF; border: 1px solid var(--border-color); }
+        .btn-cancel:hover { background: rgba(255, 255, 255, 0.1); }
         .btn-accept { background: var(--brand-red); color: white; }
         .btn-accept:hover { background: #DC2626; }
+
+        /* AJUSTES DE SELECTS Y LISTAS DESPLEGABLES */
+        select option { background-color: #0F172A; color: #FFFFFF; }
 
         @media (max-width: 768px) {
             body, html { width: 100%; overflow-x: hidden; }
@@ -97,7 +100,7 @@
     </header>
 
     <div id="loginScreen" class="admin-panel" style="max-width: 420px; text-align: center; margin-top: 10vh;">
-        <h2 class="font-display" style="font-size: 36px; margin-bottom: 10px; color: var(--brand-dark);">Ingreso Privado</h2>
+        <h2 class="font-display" style="font-size: 36px; margin-bottom: 10px; color: #FFFFFF;">Ingreso Privado</h2>
         <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px;">Solo para administradores de De Rabona.</p>
         <div class="form-group">
             <input type="password" id="adminPass" placeholder="Contraseña...">
@@ -108,7 +111,7 @@
     <div id="adminPanel" class="admin-panel hidden">
         <div class="admin-header">
             <div>
-                <h2 class="font-display" style="font-size: 28px; font-weight: 700; color: var(--brand-dark);">Gestión de Inventario</h2>
+                <h2 class="font-display" style="font-size: 28px; font-weight: 700; color: #FFFFFF;">Gestión de Inventario</h2>
                 <p style="font-size: 14px; color: var(--text-muted);">Subí fotos, actualizá precios y controlá el stock.</p>
             </div>
             <button onclick="cerrarSesion()" class="btn-delete" style="padding: 10px 20px; border-radius: var(--radius-md); font-weight: 600;">Cerrar Sesión</button>
@@ -160,14 +163,14 @@
             
             <div class="form-group" style="grid-column: 1 / -1;">
                 <label>Fotos (Múltiples)</label>
-                <input type="file" id="pImageFile" accept="image/*" multiple onchange="previsualizarFotos()" style="background: #fff; padding: 10px; margin-bottom: 5px;">
+                <input type="file" id="pImageFile" accept="image/*" multiple onchange="previsualizarFotos()" style="background: rgba(255,255,255,0.03); padding: 10px; margin-bottom: 5px;">
                 <div id="previewContainer" class="preview-box">
                     <span style="color: var(--text-muted); font-size: 13px;">Las fotos seleccionadas aparecerán acá...</span>
                 </div>
             </div>
 
             <div class="stock-grid-box">
-                <label style="font-size: 14px; font-weight: 700; color: var(--brand-dark); margin-bottom: 10px; display: block;">CONTROL DE STOCK</label>
+                <label style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-bottom: 10px; display: block;">CONTROL DE STOCK</label>
                 <div class="stock-flex">
                     <div><label style="font-size: 12px; font-weight: 600; display:block; text-align:center; color: var(--text-muted); margin-bottom: 5px;">S</label><input type="number" id="stockS" min="0" value="0"></div>
                     <div><label style="font-size: 12px; font-weight: 600; display:block; text-align:center; color: var(--text-muted); margin-bottom: 5px;">M</label><input type="number" id="stockM" min="0" value="0"></div>
@@ -189,7 +192,7 @@
         </form>
 
         <hr style="border-color: var(--border-color); margin: 40px 0; border-width: 1px;">
-        <h3 class="font-display" style="margin-bottom: 15px; font-size: 24px; color: var(--brand-dark);">Productos en la Nube <span style="font-size:15px; color:var(--text-muted); font-family: 'Inter', sans-serif; font-weight:500; text-transform: none; letter-spacing: 0;">(Tocá un equipo para abrir/cerrar)</span></h3>
+        <h3 class="font-display" style="margin-bottom: 15px; font-size: 24px; color: #FFFFFF;">Productos en la Nube <span style="font-size:15px; color:var(--text-muted); font-family: 'Inter', sans-serif; font-weight:500; text-transform: none; letter-spacing: 0;">(Tocá un equipo para abrir/cerrar)</span></h3>
         <div class="table-responsive">
             <table class="admin-table">
                 <thead>
@@ -393,7 +396,7 @@
                         <tr class="accordion-header-row" onclick="toggleAccordion('${teamId}')">
                             <td colspan="5" class="accordion-header-cell">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-size: 16px; font-weight: 700; color: var(--brand-dark);">
+                                    <span style="font-size: 16px; font-weight: 700; color: #FFFFFF;">
                                         <i class="fa-solid fa-chevron-right accordion-icon" id="icon_${teamId}"></i> 
                                         ${team} <span style="font-size: 13px; color: var(--text-muted); font-weight: 500;">(${teamProducts.length} prendas)</span>
                                     </span>
@@ -416,8 +419,8 @@
                         tbody.innerHTML += `
                             <tr class="product-row" id="row_${teamId}">
                                 <td style="display: flex; flex-wrap: wrap; gap: 2px; min-width: 100px;">${fotosHTML}</td>
-                                <td style="min-width: 150px; color: var(--brand-dark);"><strong>${p.title}</strong><small>${retroTag}${typeTag}</small></td>
-                                <td style="min-width: 90px; color: var(--brand-dark); font-weight:700;">$${Number(p.price).toLocaleString('es-AR')}</td>
+                                <td style="min-width: 150px; color: #FFFFFF;"><strong>${p.title}</strong><small>${retroTag}${typeTag}</small></td>
+                                <td style="min-width: 90px; color: #FFFFFF; font-weight:700; font-family: 'Oswald', sans-serif;">$${Number(p.price).toLocaleString('es-AR')}</td>
                                 <td style="min-width: 180px; display: flex; gap: 6px; align-items: center; padding-top: 25px;">
                                     <input type="number" class="inline-stock-input" value="${p.stock?.S || 0}" title="S" onchange="updateStockInline('${p.id}', 'S', this.value)">
                                     <input type="number" class="inline-stock-input" value="${p.stock?.M || 0}" title="M" onchange="updateStockInline('${p.id}', 'M', this.value)">
