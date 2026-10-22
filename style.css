@@ -1,5 +1,5 @@
 /* ===================================================
-   DE RABONA - PREMIUM SPORTSWEAR CSS (ESTÉTICA MEJORADA)
+   DE RABONA - PREMIUM SPORTSWEAR CSS (ESTÉTICA Y REDES CORREGIDAS)
    =================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap');
@@ -53,7 +53,7 @@ button, input, select, textarea { font-family: inherit; }
 /* BANNER SUPERIOR */
 .top-banner {
     background-color: #05070B;
-    color: var(--text-muted);
+    color: #FFFFFF;
     font-size: 11px;
     font-weight: 500;
     padding: 8px 20px;
@@ -63,8 +63,23 @@ button, input, select, textarea { font-family: inherit; }
     letter-spacing: 0.5px;
     border-bottom: 1px solid var(--border-color);
 }
-.top-banner .social-links a { margin-left: 15px; transition: all 0.3s ease; display: inline-block; opacity: 0.7; }
-.top-banner .social-links a:hover { transform: translateY(-2px); opacity: 1; color: var(--brand-blue); }
+.top-banner .social-links {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+.top-banner .social-links a {
+    color: #FFFFFF !important;
+    font-size: 16px !important;
+    display: inline-block !important;
+    opacity: 0.9 !important;
+    transition: all 0.3s ease !important;
+}
+.top-banner .social-links a:hover {
+    transform: translateY(-2px) scale(1.1);
+    opacity: 1 !important;
+    color: var(--brand-blue) !important;
+}
 
 /* HEADER PRINCIPAL */
 .main-header {
@@ -262,13 +277,25 @@ button, input, select, textarea { font-family: inherit; }
 }
 .float-wa:hover { transform: scale(1.1) rotate(10deg); color: white; }
 
-/* FOOTER */
+/* FOOTER Y ENLACES DE REDES */
 .main-footer { background-color: #05070B; color: #FFFFFF; padding: 60px 20px 30px; margin-top: auto; border-top: 1px solid var(--border-color); }
 .footer-grid { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; }
 
-/* =========================================
-   OPTIMIZACIÓN EXCLUSIVA PARA MÓVILES (CELULARES)
-   ========================================= */
+.social-link-item {
+    color: #FFFFFF !important;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.social-link-item:hover {
+    color: var(--brand-blue) !important;
+    transform: translateX(4px);
+}
+
+/* OPTIMIZACIÓN EXCLUSIVA PARA MÓVILES */
 @media (max-width: 768px) {
     .top-banner { display: none; }
 
